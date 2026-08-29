@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Happy Birthday 💖</title>
+  
+  <!-- External Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Devanagari:wght@400;600;700&family=Dancing+Script:wght@600;700&family=Kalam:wght@400;700&family=Poppins:wght@400;600&family=Sriracha&family=Titan+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- CSS Link -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Floating Particles -->
+  <div id="particles"></div>
+
+  <!-- ♪ MUSIC PLAYER (floating bottom-left) -->
+  <div class="music-player" id="musicPlayer">
+    <audio id="bgMusic" loop>
+      <!-- Put your song file in the same folder and name it: song.mp3 -->
+      <source src="song.mp4" type="audio/mpeg">
+    </audio>
+    <button class="music-btn" id="musicToggle" onclick="toggleMusic()" title="Play/Pause Music">
+      <span id="musicIcon">▶</span>
+    </button>
+    <div class="music-info" id="musicInfo">
+      <span class="music-note-anim">♪</span>
+      <span class="music-title" id="musicTitle">Birthday Song</span>
+      <div class="music-bars" id="musicBars">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+    <input type="range" class="music-vol" id="musicVol" min="0" max="1" step="0.05" value="0.5" oninput="setVolume(this.value)" title="Volume">
+  </div>
+
+  <!-- 🌠 WISH CARD POPUP -->
+  <div class="wish-modal" id="wishModal">
+    <div class="wish-overlay" onclick="closeWish()"></div>
+    <div class="wish-card-box">
+      <button class="wish-close" onclick="closeWish()">×</button>
+      <div class="wish-header">💌 Apni Wish Likho</div>
+      <textarea class="wish-textarea" id="wishText" placeholder="Ananya ke liye kuch khaas likho...✨" maxlength="200"></textarea>
+      <div class="wish-char" id="wishChar">200 left</div>
+      <div class="wish-actions">
+        <button class="wish-save-btn" onclick="saveWish()">💾 Save Wish</button>
+        <button class="wish-share-btn" onclick="shareWish()">📤 Share</button>
+      </div>
+      <div class="saved-wishes" id="savedWishes"></div>
+    </div>
+  </div>
+
+  <!-- 💫 SPARKLE CANVAS (cursor effect) -->
+  <canvas id="sparkle-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:9998;"></canvas>
+
+  <!-- Overhead Decor -->
+  <div class="flag__birthday">
+    <img src="https://api.iconify.design/twemoji:party-popper.svg" class="flag__left" alt="decor">
+    <img src="https://api.iconify.design/twemoji:party-popper.svg" class="flag__right" alt="decor">
+  </div>
+  <img src="https://api.iconify.design/twemoji:balloon.svg" class="balloon_one" alt="balloon">
+  <img src="https://api.iconify.design/twemoji:balloon.svg" class="balloon_two" alt="balloon">
+
+  <!-- Main Container -->
+  <div class="app">
+
+    <!-- Step Progress Dots -->
+    <div class="progress" id="prog" title="Navigate through the surprises"></div>
+    <p id="step-label" style="font-size:0.7rem;color:rgba(255,255,255,0.4);text-align:center;margin-top:-10px;letter-spacing:1.5px;margin-bottom:4px;"></p>
+
+    <!-- Emoji Reaction Bar -->
+    <div class="reaction-bar" id="reactionBar">
+      <span class="react-emoji" onclick="sendReaction('❤️')">❤️</span>
+      <span class="react-emoji" onclick="sendReaction('🥰')">🥰</span>
+      <span class="react-emoji" onclick="sendReaction('✨')">✨</span>
+      <span class="react-emoji" onclick="sendReaction('🎂')">🎂</span>
+      <span class="react-emoji" onclick="sendReaction('💐')">💐</span>
+      <button class="wish-open-btn" onclick="openWish()">✍️ Wish</button>
+    </div>
+
+    <!-- LAYER 0: HERO INTRO WITH TIMER & SECRET KEY -->
+    <div class="layer active" id="layer-0">
+      <div class="hero-title-box">
+        <h1 class="title-h1">HAPPY BIRTHDAY</h1>
+        <h1 class="title-h1 name-title">Ananya Raj 💖</h1>
+      </div>
+      <div class="avatar-wrapper">
+        <img src="/image/Snapchat-1904865246.jpg" class="bday-img img-1" alt="Ananya Raj Selfie">
+      </div>
+      <div class="date-badge">🎂 16 Sep 🎂</div>
+
+      <!-- Countdown Timer Box -->
+      <div class="timer-box">
+        <div class="timer-title">⏰ Opening In:</div>
+        <div class="timer-display">
+          <div class="time-unit"><span id="days">00</span><p>Days</p></div>
+          <div class="time-unit"><span id="hours">00</span><p>Hours</p></div>
+          <div class="time-unit"><span id="minutes">00</span><p>Mins</p></div>
+          <div class="time-unit"><span id="seconds">00</span><p>Secs</p></div>
+        </div>
+      </div>
+
+      <!-- Surprise Open Button (Disabled until timer finishes or secret key is entered) -->
+      <div>
+        <button class="big-btn" id="open-btn" onclick="next()" disabled>Surprise Locked 🔒</button>
+      </div>
+
+      <!-- Secret Key Trigger Option -->
+      <div class="secret-box">
+        <p onclick="toggleSecretInput()" class="secret-toggle-text">🔑 Have a Secret Key?</p>
+        <div id="secret-input-wrapper" class="secret-input-wrapper" style="display: none;">
+          <input type="password" id="secretKeyInput" placeholder="Enter Secret Key">
+          <button onclick="unlockWithSecretKey()" class="secret-btn">Unlock</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAYER 1: CAKE CUTTING -->
+ <!-- LAYER 1: CAKE CUTTING -->
+<div class="layer" id="layer-1">
+
+  <div class="layer-label">
+    ✦ First Surprise — Cake Cutting ✦
+  </div>
+
+  <div class="avatar-wrapper-2">
+    <img
+      src="/image/image1.png"
+      class="bday-img img-2"
+      alt="Ananya Birthday Cake"
+    >
+  </div>
+
+  <div class="cake-section">
+
+    <div class="candles-row">
+
+      <div class="candle-w">
+        <div class="flame"></div>
+        <div class="wick"></div>
+        <div class="cstick" style="background:#e91e63"></div>
+      </div>
+
+      <div class="candle-w">
+        <div
+          class="flame"
+          style="animation-delay:.2s"
+        ></div>
+        <div class="wick"></div>
+        <div
+          class="cstick"
+          style="background:#9c27b0"
+        ></div>
+      </div>
+
+      <div class="candle-w">
+        <div
+          class="flame"
+          style="animation-delay:.1s"
+        ></div>
+        <div class="wick"></div>
+        <div
+          class="cstick"
+          style="background:#ff9800"
+        ></div>
+      </div>
+
+      <div class="candle-w">
+        <div
+          class="flame"
+          style="animation-delay:.3s"
+        ></div>
+        <div class="wick"></div>
+        <div
+          class="cstick"
+          style="background:#e91e63"
+        ></div>
+      </div>
+
+      <div class="candle-w">
+        <div
+          class="flame"
+          style="animation-delay:.15s"
+        ></div>
+        <div class="wick"></div>
+        <div
+          class="cstick"
+          style="background:#9c27b0"
+        ></div>
+      </div>
+
+    </div>
+
+    <div class="cake-body">
+
+      <div class="cake-t1">
+        <span class="cake-txt">
+          🎂 Dear Ananya Raj 🎂
+        </span>
+      </div>
+
+      <div class="cake-t2">
+        <span class="cake-txt">
+          ✨ Janamdin Mubarak ✨
+        </span>
+      </div>
+
+      <div class="cake-t3">
+        <span class="cake-txt">
+          💖 Bahut Bahut Shubhkamnayein 💖
+        </span>
+      </div>
+
+      <div class="cake-plate"></div>
+
+    </div>
+
+  </div>
+
+
+  <!-- CAKE ACTIONS -->
+
+  <div class="cake-actions">
+
+    <button
+      class="cake-btn blow-btn"
+      onclick="blowCandles()"
+    >
+      🕯️ Make a Wish
+    </button>
+
+    <button
+      class="cake-btn cut-btn"
+      id="cutCakeBtn"
+      onclick="cutCake()"
+      disabled
+    >
+      🔪 Cut the Cake
+    </button>
+
+  </div>
+
+
+  <div
+    id="cake-message"
+    class="cake-message"
+  >
+    Make a wish and blow out the candles ✨
+  </div>
+
+
+  <div class="nav-area">
+
+    <button
+      class="nav-btn"
+      onclick="prev()"
+    >
+      ← Wapas
+    </button>
+
+    <button
+      class="nav-btn main"
+      id="cakeNextBtn"
+      onclick="next()"
+      disabled
+    >
+      Aage Badho →
+    </button>
+
+  </div>
+
+</div>
+
+<!-- LAYER 2: HAPPINESS -->
+<div class="layer" id="layer-2">
+  <div class="layer-label">✦ Second Surprise — Happiness ✦</div>
+
+  <div class="card pink">
+    <div class="avatar-wrapper">
+      <img src="/image/image3.png" class="bday-img img-3" alt="Ananya Pink Dress">
+    </div>
+
+    <div class="card-title">Happiness</div>
+
+    <div class="card-msg">
+      When you smile, I don't know why...<br>
+      the whole day just feels a little better.<br>
+      Some smiles are simply hard to ignore. 🌸
+    </div>
+
+    <div class="photo-strip">
+      <div class="photo-box">🌸</div>
+      <div class="photo-box">🌺</div>
+      <div class="photo-box">🌼</div>
+      <div class="photo-box">🌻</div>
+      <div class="photo-box">🌹</div>
+    </div>
+  </div>
+
+  <div class="nav-area">
+    <button class="nav-btn" onclick="prev()">← Back</button>
+    <button class="nav-btn main" onclick="next()">Next →</button>
+  </div>
+</div>
+
+
+<!-- LAYER 3: SOMETHING SPECIAL -->
+<div class="layer" id="layer-3">
+  <div class="layer-label">✦ Third Surprise — Something Special ✦</div>
+
+  <div class="card purple">
+    <div class="avatar-wrapper">
+      <img src="/image/image4.png" class="bday-img img-4" alt="Ananya Wings">
+    </div>
+
+    <div class="card-title">Something Special</div>
+
+    <div class="card-msg">
+      Some people come into your life and simply become a part of it.<br>
+      You don't always notice when it happens,<br>
+      you just realize one day that they matter more than you expected. ✨
+    </div>
+
+    <div class="photo-strip">
+      <div class="photo-box">💫</div>
+      <div class="photo-box">⭐</div>
+      <div class="photo-box">🦋</div>
+      <div class="photo-box">💜</div>
+      <div class="photo-box">🌙</div>
+    </div>
+  </div>
+
+  <div class="nav-area">
+    <button class="nav-btn" onclick="prev()">← Back</button>
+    <button class="nav-btn main" onclick="next()">Next →</button>
+  </div>
+</div>
+
+
+<!-- LAYER 4: FEELINGS -->
+<div class="layer" id="layer-4">
+  <div class="layer-label">✦ Fourth Surprise — Feelings ✦</div>
+
+  <div class="card teal">
+    <div class="avatar-wrapper">
+      <img src="/image/image6.png" class="bday-img img-5" alt="Ananya Temple Visit">
+    </div>
+
+    <div class="card-title">Feelings</div>
+
+    <div class="card-msg">
+      Your behaviour is a little strange...<br>
+      sometimes one small thing from you can make the whole day happy,<br>
+      and sometimes the same small thing can leave the whole day quiet. 🌙
+    </div>
+
+    <div class="photo-strip">
+      <div class="photo-box">🌙</div>
+      <div class="photo-box">✨</div>
+      <div class="photo-box">🌿</div>
+      <div class="photo-box">🕊️</div>
+      <div class="photo-box">💫</div>
+    </div>
+  </div>
+
+  <div class="nav-area">
+    <button class="nav-btn" onclick="prev()">← Back</button>
+    <button class="nav-btn main" onclick="next()">Next →</button>
+  </div>
+</div>
+
+
+<!-- LAYER 5: TOGETHER -->
+<div class="layer" id="layer-5">
+  <div class="layer-label">✦ Fifth Surprise — Together ✦</div>
+
+  <div class="card pink">
+    <div class="avatar-wrapper">
+      <img src="/image/image3.png" class="bday-img img-3" alt="Ananya Happy Moment">
+    </div>
+
+    <div class="card-title">Together</div>
+
+    <div class="card-msg">
+      You don't always have to be close to feel someone's presence.<br>
+      Sometimes just knowing that a person is there<br>
+      is enough to make difficult days feel a little easier. 🤍
+    </div>
+
+    <div class="photo-strip">
+      <div class="photo-box">🤍</div>
+      <div class="photo-box">🌷</div>
+      <div class="photo-box">🫶</div>
+      <div class="photo-box">🌸</div>
+      <div class="photo-box">✨</div>
+    </div>
+  </div>
+
+  <div class="nav-area">
+    <button class="nav-btn" onclick="prev()">← Back</button>
+    <button class="nav-btn main" onclick="next()">Next →</button>
+  </div>
+</div>
+
+
+<!-- LAYER 6: WISHES -->
+<div class="layer" id="layer-6">
+  <div class="layer-label">✦ Final Surprise — Wishes ✦</div>
+
+  <div class="card purple">
+    <div class="avatar-wrapper">
+      <img src="/image/image4.png" class="bday-img img-4" alt="Ananya Birthday">
+    </div>
+
+    <div class="card-title">Wishes</div>
+
+    <div class="card-msg">
+      I hope life gives you many reasons to smile,<br>
+      people who understand you, and moments worth remembering.<br>
+      And above everything else, I hope you always stay happy. 🌷
+    </div>
+
+    <div class="photo-strip">
+      <div class="photo-box">🌷</div>
+      <div class="photo-box">🌸</div>
+      <div class="photo-box">🦋</div>
+      <div class="photo-box">✨</div>
+      <div class="photo-box">🎂</div>
+    </div>
+  </div>
+
+  <div class="nav-area">
+    <button class="nav-btn" onclick="prev()">← Back</button>
+    <button class="nav-btn main" onclick="next()">Next →</button>
+  </div>
+</div>
+
+    <!-- LAYER 5: 12 PHOTOS GALLERY -->
+    <div class="layer" id="layer-5">
+      <div class="layer-label">✦ Paanchwa Surprise — Special Memories ✦</div>
+      <div class="card gold">
+        <div class="card-title">Khaas Yaadein 💖</div>
+        <div class="card-msg">Waqt guzar gaya par yeh pyari yaadein hamesha dil ke kareeb rahengi! ✨</div>
+        <div class="childhood-gallery">
+          <div class="photo-frame"><img src="/image/image8.png" class="bday-img img-1" alt="Memory 1"></div>
+          <div class="photo-frame"><img src="/image/image9.png" class="bday-img img-2" alt="Memory 2"></div>
+          <div class="photo-frame"><img src="/image/image10.png" class="bday-img img-3" alt="Memory 3"></div>
+          <div class="photo-frame"><img src="/image/image11.png" class="bday-img img-4" alt="Memory 4"></div>
+          <div class="photo-frame"><img src="/image/image12.png" class="bday-img img-5" alt="Memory 5"></div>
+          <div class="photo-frame"><img src="/image/image13.png" class="bday-img img-6" alt="Memory 6"></div>
+          <div class="photo-frame"><img src="/image/image14.png" class="bday-img img-7" alt="Memory 7"></div>
+          <div class="photo-frame"><img src="/image/image15.png" class="bday-img img-8" alt="Memory 8"></div>
+          <div class="photo-frame"><img src="/image/image16.png" class="bday-img img-9" alt="Memory 9"></div>
+          <div class="photo-frame"><img src="/image/image17.png" class="bday-img img-10" alt="Memory 10"></div>
+          <div class="photo-frame"><img src="/image/image18.png" class="bday-img img-10" alt="Memory 11"></div>
+          <div class="photo-frame"><img src="/image/image19.png" class="bday-img img-10" alt="Memory 12"></div>
+        </div>
+      </div>
+      
+  <div class="nav-area">
+    <button class="nav-btn" onclick="prev()">← Back</button>
+    <button class="nav-btn main" onclick="next()">Next →</button>
+  </div>
+    </div>
+
+    <!-- LAYER 6: TYPEWRITER SHAYRI -->
+    <div class="layer" id="layer-6">
+      <div class="layer-label">✦ Chhatta Surprise — Dil Ki Baat ✦</div>
+      <div class="tw-outer">
+        <div class="tw-bar">
+          <div class="tw-dot" style="background:#ff5f57"></div>
+          <div class="tw-dot" style="background:#ffbd2e"></div>
+          <div class="tw-dot" style="background:#28c840"></div>
+          <span class="tw-bar-title">shayri.txt — for Ananya Raj...</span>
+        </div>
+        <div class="tw-body">
+          <div class="tw-line" id="tw-out"></div><span class="tw-cursor" id="tw-cur"></span>
+          <div class="done-msg" id="tw-done">— Sirf Tumhare Liye — 💖</div>
+        </div>
+      </div>
+      <div class="nav-area">
+        <button class="nav-btn" onclick="prev()">← Wapas</button>
+        <button class="nav-btn" onclick="startTW()">↺ Phir Se Sunao</button>
+        <button class="nav-btn main" onclick="next()">Special Letter →</button>
+      </div>
+    </div>
+            <!-- LAYER 7: SECRET LETTER -->
+
+        <div class="layer" id="layer-7">
+          <div class="layer-label">✦ Aakhri Surprise — A Little Something ✦</div>
+
+          <div class="card gold">
+            <div class="avatar-wrapper">
+              <img src="/image/Snapchat-1904865246.jpg"
+                  class="bday-img img-10"
+                  alt="Ananya Raj Final">
+            </div>
+        <div class="card-title">A Special Note For You</div>
+        <div class="card-msg">
+          Some feelings are difficult to put into a few words...<br>
+          so I wrote a little something instead.<br>
+          Take a moment, open it, and read it slowly. 💌
+        </div>
+        <button class="big-btn" onclick="openMail()">Open Letter ✉️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- POPUP ENVELOPE & LETTER MODAL -->
+<div class="boxMail" id="mailModal">
+  <div class="mail-overlay" onclick="closeMail()"></div>
+  <div id="mailParticles" class="mail-particles"></div>
+  <div class="envelope-wrapper">
+    <!-- Envelope Flap (Jo khulega) -->
+    <div class="envelope-flap"></div>
+    
+    <!-- Envelope Body -->
+    <div class="envelope-front"></div>
+    <div class="envelope-back"></div>
+
+    <!-- Inside Paper Letter -->
+    <div class="letter-paper">
+      <span class="close-mail" onclick="closeMail()">&times;</span>
+      
+  <div class="letter-header">
+  <span class="stamp">💌</span>
+  <h3>Happy Birthday! 🥳🎂</h3>
+  <p class="letter-to">To:💖</p>
+</div>
+
+<div class="letter-body">
+
+  <p>
+    Happy Birthday ❤️.
+    Sometimes I think about how quietly someone can become important in your life.
+    When you first came into mine, I never imagined that, with time, you would become someone whose presence, words, smile, and even silence could mean so much to me.
+  </p>
+
+  <p>
+    There are many things I may not always know how to say, but I hope you know this —
+    I genuinely care about you.
+    Your happiness matters to me, and seeing you smile will always be one of those little things that can make an ordinary day feel better.
+  </p>
+
+  <p>
+    I also know that not every day is easy.
+    There may be things you carry quietly, things you don't always tell people about, and moments when you choose to smile even when something inside you isn't okay.
+    I wish I could take away at least a little of that heaviness for you.
+    And whenever you feel like talking, you never have to think twice about it.
+    You can always talk to me. 🤍
+  </p>
+
+  <p>
+    On your birthday, I don't just wish you a beautiful day.
+    I wish you a beautiful year ahead —
+    one filled with genuine smiles, peaceful nights, good people, meaningful moments, and reasons to feel proud of yourself.
+  </p>
+
+  <p>
+    May you have the strength to face every difficult moment, the courage to follow your dreams, and the patience to trust your own journey.
+    May the things that hurt you slowly become lessons, and may the things that make you happy stay with you for a very long time.
+  </p>
+
+  <p>
+    May you always be surrounded by people who respect your heart, understand your silence, celebrate your happiness, and stand beside you when life becomes difficult.
+    May you never feel alone in the moments when you need someone the most.
+  </p>
+
+  <p>
+    I pray that every year brings you closer to the life you dream about.
+    May you achieve everything you work for, discover new reasons to smile, and never lose the beautiful person you are while becoming the person you want to be. 🌷
+  </p>
+
+  <p>
+    And if there is one thing I wish for you above everything else,
+    it is simple —
+    <strong>may you always be happy, peaceful, healthy, and loved in the ways you truly deserve.</strong>
+  </p>
+
+  <p>
+    Keep smiling, keep believing in yourself, and keep being you.
+    Some people may not always say it, but your presence can mean much more than you realize.
+  </p>
+
+  <p>
+    Happy Birthday once again,❤️. 🎂✨
+    May this new chapter of your life be softer than the difficult days, brighter than the darkest moments, and full of memories you will want to keep forever.
+  </p>
+
+</div>
+      <div class="letter-footer">
+        <p>With Lots of Love ❤️</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- JS Link -->
+  <script src="app.js"></script>
+  <script>
+    // Init on load
+    startCountdown();
+    buildDots(0);
+  </script>
+</body>
+</html>
