@@ -46,7 +46,13 @@ const client = new Client({
             '--single-process',
             '--disable-gpu',
             '--disable-extensions',
-            '--js-flags="--max-old-space-size=256"' // Render 512MB RAM optimization
+            '--disable-component-update',
+            '--no-default-browser-check',
+            '--disable-site-isolation-trials',
+            '--disable-web-security',
+            '--disable-features=IsolateOrigins,site-per-process',
+            '--memory-pressure-off',
+            '--js-flags="--max-old-space-size=128 --optimize-for-size"'
         ]
     }
 });
