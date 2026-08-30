@@ -43,7 +43,8 @@ const client = new Client({
             '--no-first-run',
             '--no-zygote',
             '--single-process',
-            '--disable-gpu'
+            '--disable-gpu',
+            '--js-flags="--max-old-space-size=400"'
         ]
     }
 });
