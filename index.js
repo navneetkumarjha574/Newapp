@@ -1,18 +1,20 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+const express = require('express');
+const QRCode = require('qrcode');
 
-// Target Date: 16 September 2026 Midnight (12:00 AM)
-const TARGET_DATE = new Date(2026, 8, 16, 0, 0, 0); // Month 0-indexed (8 = Sep)
-const PHONE_NUMBER = "919973600388"; // Target WhatsApp Number (Country code ke saath)
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Real-Time Time Calculator (Days, Hours, Minutes)
+const TARGET_DATE = new Date(2026, 8, 16, 0, 0, 0);
+const PHONE_NUMBER = "919973600388";
+
+let qrImageData = '';
+
 function getRemainingTimeMessage() {
     const now = new Date();
     const diffMs = TARGET_DATE - now;
 
-    if (diffMs <= 0) {
-        return null; // Time complete
-    }
+    if (diffMs <= 0) return null;
 
     const totalMinutes = Math.floor(diffMs / (1000 * 60));
     const days = Math.floor(totalMinutes / (60 * 24));
@@ -27,7 +29,6 @@ function getRemainingTimeMessage() {
     return `⏰ ${timeParts.join(' ')} left for your special day! 🥳`;
 }
 
-// WhatsApp Client Setup (Cloud Friendly Arguments)
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
@@ -40,37 +41,59 @@ const client = new Client({
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
-            '--single-process', // Low memory use karne ke liye critical
+            '--single-process',
             '--disable-gpu'
         ]
     }
 });
 
 client.on('qr', (qr) => {
-    console.log('Terminal par QR Code scan karein:');
-    qrcode.generate(qr, { small: true });
+    QRCode.toDataURL(qr, (err, url) => {
+        if (!err) {
+            qrImageData = url;
+            console.log('Web QR Code Ready!');
+        }
+    });
 });
 
 client.on('ready', () => {
-    console.log('WhatsApp Bot Active! Countdown running every 1 minute...');
+    console.log('WhatsApp Bot Ready!');
+    qrImageData = '';
     const chatId = `${PHONE_NUMBER}@c.us`;
 
-    const interval = setInterval(async () => {
+    setInterval(async () => {
         const message = getRemainingTimeMessage();
-
-        // 16 Sep Midnight Reached
         if (!message) {
-            clearInterval(interval);
-            await client.sendMessage(chatId, "🎉 HAPPY BIRTHDAY! May all your dreams come true! 🥳🎁✨");
-            console.log("🎉 Final Birthday Wish Sent!");
+            await client.sendMessage(chatId, "🎉 HAPPY BIRTHDAY! 🥳🎁✨");
             return;
         }
+        try {
+            await client.sendMessage(chatId, message);
+        } catch (err) {
+            console.error(err);
+        }
+    }, 60000);
+});
 
-        // Send Countdown Message
-        await client.sendMessage(chatId, message);
-        console.log(`Sent: ${message}`);
+app.get('/', (req, res) => {
+    if (qrImageData) {
+        res.send(`
+            <html>
+            <body style="display:flex;justify-content:center;align-items:center;height:100vh;background:#111b21;">
+                <div style="text-align:center;background:#202c33;padding:20px;border-radius:10px;">
+                    <h2 style="color:#00a884;">Scan QR Code</h2>
+                    <img src="${qrImageData}" style="width:280px;height:280px;"/>
+                </div>
+            </body>
+            </html>
+        `);
+    } else {
+        res.send('<h2>QR Code generate ho raha hai... 10s baad refresh karein.</h2>');
+    }
+});
 
-    }, 60000); // Exact 1 Minute Interval
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
 
 client.initialize();
