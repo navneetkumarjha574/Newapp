@@ -6,8 +6,9 @@ const http = require('http');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Target Date: 16 September 2026 Midnight (12:00 AM)
 const TARGET_DATE = new Date(2026, 8, 16, 0, 0, 0);
-const PHONE_NUMBER = "918340189561"; // Country code ke saath
+const PHONE_NUMBER = "918340189561"; // Target Number with Country Code (91)
 
 let qrImageData = '';
 
@@ -44,7 +45,8 @@ const client = new Client({
             '--no-zygote',
             '--single-process',
             '--disable-gpu',
-            '--js-flags="--max-old-space-size=400"'
+            '--disable-extensions',
+            '--js-flags="--max-old-space-size=256"' // Render 512MB RAM optimization
         ]
     }
 });
@@ -58,43 +60,35 @@ client.on('qr', (qr) => {
     });
 });
 
-// Safe Message Sending Helper Function
+// Safe Message Sending Logic
 async function sendCountdownMessage() {
-    const chatId = `${PHONE_NUMBER}@c.us`;
     const message = getRemainingTimeMessage();
+    const textToSend = message || "🎉 HAPPY BIRTHDAY! 🥳🎁✨";
 
     try {
-        // Chat object load karke message bhejna (Fix for unread/unopened chats)
-        const chat = await client.getChatById(chatId);
+        // Step 1: Check if number exists on WhatsApp
+        const numberDetails = await client.getNumberId(PHONE_NUMBER);
         
-        if (!message) {
-            await chat.sendMessage("🎉 HAPPY BIRTHDAY! 🥳🎁✨");
-            console.log("🎉 Birthday Wish Sent!");
-            return;
+        if (numberDetails) {
+            // Step 2: Send directly to the verified serialized ID
+            await client.sendMessage(numberDetails._serialized, textToSend);
+            console.log(`[SUCCESS] Message Sent to ${PHONE_NUMBER}: ${textToSend}`);
+        } else {
+            console.error(`[ERROR] Number ${PHONE_NUMBER} WhatsApp par registered nahi mil raha hai.`);
         }
-
-        await chat.sendMessage(message);
-        console.log(`[SUCCESS] Message Sent: ${message}`);
     } catch (err) {
-        console.error(`[ERROR] Direct send failed, fallback send try kar rahe hain:`, err.message);
-        // Fallback method
-        try {
-            await client.sendMessage(chatId, message || "🎉 HAPPY BIRTHDAY! 🥳🎁✨");
-            console.log(`[SUCCESS Fallback] Message Sent: ${message}`);
-        } catch (fallbackErr) {
-            console.error(`[CRITICAL ERROR] Message bhejne me dikkat aayi:`, fallbackErr.message);
-        }
+        console.error(`[CRITICAL ERROR] Message send fail hua:`, err.message);
     }
 }
 
 client.on('ready', () => {
-    console.log('✅ WhatsApp Bot Successfully Ready & Connected!');
+    console.log('✅ WhatsApp Bot Successfully Connected!');
     qrImageData = '';
 
-    // 1. Ready hote hi immediately pehla message bhejega
+    // 1. Send immediate message upon connecting
     sendCountdownMessage();
 
-    // 2. Continuous 1-minute interval loop
+    // 2. Loop every 1 minute
     setInterval(() => {
         sendCountdownMessage();
     }, 60000);
@@ -113,14 +107,14 @@ app.get('/', (req, res) => {
             </html>
         `);
     } else {
-        res.send('<h2>Bot Ready/Logged in hai! QR code ki zaroorat nahi hai.</h2>');
+        res.send('<h2>Bot Logged In Hai! Messages background me ja rahe hain.</h2>');
     }
 });
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     
-    // Render Server Sleep Mode Bypass (Har 5 Min me Self Ping)
+    // Prevent Render Free Tier Sleep Mode
     setInterval(() => {
         http.get(`http://localhost:${PORT}`);
     }, 300000);
