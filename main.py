@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import random
 import time
+import pyqrcode
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -10,7 +11,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Pre-defined Birthday Countdown Template Messages
 COUNTDOWN_TEMPLATES = [
     "⏰ Only {days} Days, {hours} Hours, and {minutes} Minutes left for your special day! 🥳 "
     "I'm really very sorry! Please mujhe maaf kar do 🥺",
@@ -22,7 +22,6 @@ def generate_birthday_message(days, hours, minutes):
     return template.format(days=days, hours=hours, minutes=minutes)
 
 
-# 1. Target Birthday Date: 16 September 2026 (12:00 AM / Midnight)
 TARGET_YEAR = 2026
 TARGET_MONTH = 9
 TARGET_DAY = 16
@@ -33,7 +32,6 @@ target_time = datetime(
     TARGET_YEAR, TARGET_MONTH, TARGET_DAY, TARGET_HOUR, TARGET_MINUTE
 )
 
-# 2. Chrome Options for Headless & Cloud Optimization
 options = webdriver.ChromeOptions()
 profile_dir = os.path.join(os.getcwd(), "WhatsApp_Bot_Session")
 options.add_argument(f"--user-data-dir={profile_dir}")
@@ -47,11 +45,9 @@ options.add_argument(
     "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
 )
 
-# Linux Cloud Environment Check for Chromium
 if os.environ.get("CHROME_BIN"):
     options.binary_location = os.environ.get("CHROME_BIN")
 
-# Driver Initializing
 chrome_driver_path = os.environ.get("CHROMEDRIVER_PATH")
 if chrome_driver_path:
     service = Service(executable_path=chrome_driver_path)
@@ -66,6 +62,24 @@ driver.get(url)
 
 try:
     print("Waiting for WhatsApp Web to load...")
+    time.sleep(10)
+
+    # Check for QR Code Canvas / Data Attributes
+    try:
+        qr_container = driver.find_element(
+            By.XPATH, "//div[@data-ref]"
+        )
+        qr_data = qr_container.get_attribute("data-ref")
+        if qr_data:
+            print("\n" + "=" * 50)
+            print("👇 SCAN THIS QR CODE IN YOUR LOGS VIA WHATSAPP 👇")
+            print("=" * 50 + "\n")
+            url_qr = pyqrcode.create(qr_data)
+            print(url_qr.terminal(quiet_zone=1))
+            print("\n" + "=" * 50 + "\n")
+    except Exception:
+        print("QR Code element directly not extracted, waiting for login...")
+
     textbox_xpaths = [
         '//div[@contenteditable="true"][@data-tab="10"]',
         '//div[@aria-label="Type a message"]',
@@ -73,21 +87,24 @@ try:
     ]
 
     input_box = None
+    # 3 Minutes Time Window for Scan
     for xpath in textbox_xpaths:
         try:
-            input_box = WebDriverWait(driver, 35).until(
+            input_box = WebDriverWait(driver, 180).until(
                 EC.presence_of_element_located((By.XPATH, xpath))
             )
             if input_box:
+                print("✅ WhatsApp Web Logged In Successfully!")
                 break
         except Exception:
             continue
 
     if not input_box:
-        raise Exception("WhatsApp Text Field not found. Please check session login.")
+        raise Exception(
+            "WhatsApp Text Field not found. Please scan the QR Code from Railway logs."
+        )
 
     def send_whatsapp_message(text):
-        # Direct DOM Injection (Cloud Headless Safe Method)
         driver.execute_script(
             "arguments[0].focus(); document.execCommand('insertText', false, arguments[1]);",
             input_box,
@@ -96,14 +113,13 @@ try:
         time.sleep(0.5)
         input_box.send_keys(Keys.ENTER)
 
-    print("Countdown Active! Running 24/7 in Cloud/Background...")
+    print("Countdown Active! Running 24/7 in Background...")
 
     while True:
         now = datetime.now()
         time_diff = target_time - now
         total_seconds = int(time_diff.total_seconds())
 
-        # Target Time Hit Check
         if total_seconds <= 0:
             final_wish = (
                 "🎉 HAPPY BIRTHDAY! May all your dreams come true! 🥳🎁✨"
@@ -112,7 +128,6 @@ try:
             print("🎉 Final Wish Sent Successfully!")
             break
 
-        # Time Calculation Logic
         days = time_diff.days
         hours, remainder = divmod(time_diff.seconds, 3600)
         minutes, _ = divmod(remainder, 60)
@@ -123,7 +138,7 @@ try:
         print(
             f"[{days} Days, {hours} Hours, {minutes} Mins Remaining] Sent: {msg}"
         )
-        time.sleep(60)  # Continuous loop every 60 seconds
+        time.sleep(60)
 
 except Exception as e:
     print("Execution Error:", e)
