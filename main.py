@@ -15,7 +15,7 @@ from whatsapp_api_client_python import API
 
 greenAPI = API.GreenApi(ID_INSTANCE, API_TOKEN_INSTANCE)
 
-PHONE_NUMBER = "918340189561@c.us"
+PHONE_NUMBER = "919973600388@c.us"
 TARGET_DATE = datetime(2026, 9, 16, 0, 0, 0)
 
 COUNTDOWN_TEMPLATES = [
