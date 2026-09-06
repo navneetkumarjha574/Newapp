@@ -2,7 +2,6 @@ from datetime import datetime
 import os
 import random
 import time
-import pyqrcode
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -41,8 +40,11 @@ options.add_argument("--disable-dev-shm-usage")
 options.add_argument("--disable-gpu")
 options.add_argument("--headless=new")
 options.add_argument("--window-size=1920,1080")
+
+# Anti-Bot Detection Bypass Headers
+options.add_argument("--disable-blink-features=AutomationControlled")
 options.add_argument(
-    "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
+    "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
 if os.environ.get("CHROME_BIN"):
@@ -62,46 +64,42 @@ driver.get(url)
 
 try:
     print("Waiting for WhatsApp Web to load...")
-    time.sleep(10)
+    time.sleep(15)
 
-    # Check for QR Code Canvas / Data Attributes
-    try:
-        qr_container = driver.find_element(
-            By.XPATH, "//div[@data-ref]"
-        )
-        qr_data = qr_container.get_attribute("data-ref")
-        if qr_data:
-            print("\n" + "=" * 50)
-            print("👇 SCAN THIS QR CODE IN YOUR LOGS VIA WHATSAPP 👇")
-            print("=" * 50 + "\n")
-            url_qr = pyqrcode.create(qr_data)
-            print(url_qr.terminal(quiet_zone=1))
-            print("\n" + "=" * 50 + "\n")
-    except Exception:
-        print("QR Code element directly not extracted, waiting for login...")
-
+    # Latest WhatsApp Web Contenteditable Selectors (2026 Compatible)
     textbox_xpaths = [
-        '//div[@contenteditable="true"][@data-tab="10"]',
-        '//div[@aria-label="Type a message"]',
         '//footer//div[@contenteditable="true"]',
+        '//div[@contenteditable="true"]',
+        '//div[@aria-placeholder="Type a message"]',
+        '//div[@data-lexical-editor="true"]',
     ]
 
     input_box = None
-    # 3 Minutes Time Window for Scan
-    for xpath in textbox_xpaths:
-        try:
-            input_box = WebDriverWait(driver, 180).until(
-                EC.presence_of_element_located((By.XPATH, xpath))
-            )
-            if input_box:
-                print("✅ WhatsApp Web Logged In Successfully!")
-                break
-        except Exception:
-            continue
+
+    # Wait 3 minutes for user session scan/load
+    for attempt in range(18):
+        for xpath in textbox_xpaths:
+            try:
+                elements = driver.find_elements(By.XPATH, xpath)
+                for el in elements:
+                    if el.is_displayed():
+                        input_box = el
+                        break
+                if input_box:
+                    break
+            except Exception:
+                continue
+        if input_box:
+            print("✅ WhatsApp Web Logged In Successfully!")
+            break
+        print(f"Waiting for login... ({attempt * 10}s elapsed)")
+        time.sleep(10)
 
     if not input_box:
+        # Fallback: Save screenshot for debug
+        driver.save_screenshot("login_error.png")
         raise Exception(
-            "WhatsApp Text Field not found. Please scan the QR Code from Railway logs."
+            "WhatsApp Text Field not found. Session login required or QR not scanned."
         )
 
     def send_whatsapp_message(text):
