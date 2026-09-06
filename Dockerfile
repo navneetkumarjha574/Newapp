@@ -1,29 +1,22 @@
-FROM node:18-slim
+FROM python:3.10-slim
 
-# Install Chromium & Dependencies
+# Install Chromium & System Drivers
 RUN apt-get update && apt-get install -y \
     chromium \
+    chromium-driver \
     fonts-ipafont-gothic \
     fonts-wqy-zenhei \
-    fonts-thai-tlwg \
-    fonts-kacst \
-    fonts-freefont-ttf \
-    libxss1 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
-    NODE_OPTIONS="--max-old-space-size=256"
+ENV CHROME_BIN=/usr/bin/chromium \
+    CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --production
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 3000
-
-# Start command se pehle cache clean karke app start karein
-CMD rm -rf .wwebjs_auth .wwebjs_cache && node index.js
+CMD ["python", "main.py"]
