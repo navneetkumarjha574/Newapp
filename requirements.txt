@@ -1,5 +1,1 @@
-selenium
-webdriver-manager
-qr-code-styling
-pyqrcode
-pypng
+whatsapp-api-client-python
