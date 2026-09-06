@@ -1,1 +1,3 @@
 whatsapp-api-client-python
+whatsapp-api-client-python
+apscheduler
