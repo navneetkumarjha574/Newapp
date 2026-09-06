@@ -1,2 +1,5 @@
 selenium
 webdriver-manager
+qr-code-styling
+pyqrcode
+pypng
