@@ -25,8 +25,7 @@ target_time = datetime(
 
 # Pre-defined Birthday Countdown Template Messages
 COUNTDOWN_TEMPLATES = [
-    "⏰ Only {days} Days, {hours} Hours, and {minutes} Minutes left for your special day! 🥳 "
-    "I'm really very sorry! Please mujhe maaf kar do 🥺",
+    "⏰ Only {days} Days, {hours} Hours, and {minutes}Babu 💗 ",
 ]
 
 
