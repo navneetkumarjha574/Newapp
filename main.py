@@ -25,7 +25,7 @@ target_time = datetime(
 
 # Pre-defined Birthday Countdown Template Messages
 COUNTDOWN_TEMPLATES = [
-    "⏰ Only {days} Days, {hours} Hours, and {minutes}Babu 💗 ",
+    "⏰ Only {days} Days, {hours} Hours, and {minutes} Babu 💗",
 ]
 
 
@@ -45,7 +45,7 @@ try:
 
         # Condition 1: Check if current minute is a multiple of 5 (0, 5, 10, 15, ..., 55)
         # Condition 2: Check if this minute hasn't already sent a message
-        if now.minute % 5 == 0 and now.minute != last_sent_minute:
+        if now.minute % 1 == 0 and now.minute != last_sent_minute:
             time_diff = target_time - now
             total_seconds = int(time_diff.total_seconds())
 
