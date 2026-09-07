@@ -1,23 +1,29 @@
-import os
-import time
-import random
 from datetime import datetime
+import random
+import time
 from whatsapp_api_client_python import API
 
 # Green API Credentials
 ID_INSTANCE = "710522729580"
 API_TOKEN_INSTANCE = "4f99fd3a1a5d4e30b1f3cd0c83ddaab69aaa0ffba5c646f68f"
 
-from datetime import datetime
-import random
-import time
-from whatsapp_api_client_python import API
-
 greenAPI = API.GreenApi(ID_INSTANCE, API_TOKEN_INSTANCE)
 
-PHONE_NUMBER = "919973600388@c.us"
-TARGET_DATE = datetime(2026, 9, 16, 0, 0, 0)
+# Target Contact Details
+PHONE_NUMBER = "918340189561@c.us"
 
+# Countdown Target Date: 16 September 2026 (Midnight)
+TARGET_YEAR = 2026
+TARGET_MONTH = 9
+TARGET_DAY = 16
+TARGET_HOUR = 0
+TARGET_MINUTE = 0
+
+target_time = datetime(
+    TARGET_YEAR, TARGET_MONTH, TARGET_DAY, TARGET_HOUR, TARGET_MINUTE
+)
+
+# Pre-defined Birthday Countdown Template Messages
 COUNTDOWN_TEMPLATES = [
     "⏰ Only {days} Days, {hours} Hours, and {minutes} Minutes left for your special day! 🥳 "
     "I'm really very sorry! Please mujhe maaf kar do 🥺",
@@ -29,40 +35,52 @@ def generate_birthday_message(days, hours, minutes):
     return template.format(days=days, hours=hours, minutes=minutes)
 
 
-last_sent_minute = -1  # Prevent Duplicate Message Guard
+# Minute Guard: Duplicate message prevent karne ke liye lock
+last_sent_minute = -1
 
-print("🚀 Bot initialized safely...")
+print("🚀 Bot Active with Green API! Sending 1 message every 5 minutes...")
 
-while True:
-    now = datetime.now()
+try:
+    while True:
+        now = datetime.now()
 
-    # Minute Guard Check: Agar is minute me message ja chuka hai toh wait karega
-    if now.minute != last_sent_minute:
-        time_diff = TARGET_DATE - now
-        total_seconds = int(time_diff.total_seconds())
+        # Condition 1: Check if current minute is a multiple of 5 (0, 5, 10, 15, ..., 55)
+        # Condition 2: Check if this minute hasn't already sent a message
+        if now.minute % 5 == 0 and now.minute != last_sent_minute:
+            time_diff = target_time - now
+            total_seconds = int(time_diff.total_seconds())
 
-        if total_seconds <= 0:
-            msg = "🎉 HAPPY BIRTHDAY! May all your dreams come true! 🥳🎁✨"
-            greenAPI.sending.sendMessage(PHONE_NUMBER, msg)
-            print("🎉 Final Wish Sent!")
-            break
+            # Target Date Reached
+            if total_seconds <= 0:
+                final_wish = (
+                    "🎉 HAPPY BIRTHDAY! May all your dreams come true! 🥳🎁✨"
+                )
+                response = greenAPI.sending.sendMessage(
+                    PHONE_NUMBER, final_wish
+                )
+                print("🎉 Final Wish Sent Successfully! Status:", response.data)
+                break
 
-        days = time_diff.days
-        hours, remainder = divmod(time_diff.seconds, 3600)
-        minutes, _ = divmod(remainder, 60)
+            # Exact Days, Hours & Minutes Calculation
+            days = time_diff.days
+            hours, remainder = divmod(time_diff.seconds, 3600)
+            minutes, _ = divmod(remainder, 60)
 
-        msg = generate_birthday_message(days, hours, minutes)
+            msg = generate_birthday_message(days, hours, minutes)
 
-        try:
-            response = greenAPI.sending.sendMessage(PHONE_NUMBER, msg)
-            print(
-                f"[{days} Days, {hours} Hours, {minutes} Mins] Sent! Status:",
-                response.data,
-            )
-            # Register current minute as sent
-            last_sent_minute = now.minute
-        except Exception as e:
-            print("Error sending message:", e)
+            try:
+                response = greenAPI.sending.sendMessage(PHONE_NUMBER, msg)
+                print(
+                    f"[{days} Days, {hours} Hours, {minutes} Mins Remaining] Sent! Status:",
+                    response.data,
+                )
+                # Lock current minute to avoid multiple triggers
+                last_sent_minute = now.minute
+            except Exception as send_err:
+                print("Error sending message via Green API:", send_err)
 
-    # Short sleep interval for exact time tracking
-    time.sleep(10)
+        # Check interval every 20 seconds
+        time.sleep(20)
+
+except Exception as e:
+    print("Execution Error:", e)
