@@ -81,7 +81,7 @@ try:
             now.minute // 5
         )
 
-        if now.minute % 5 == 0 and current_slot != last_sent_slot:
+        if now.minute % 1== 0 and current_slot != last_sent_slot:
 
             msg = (
                 f"⏰ Only {days} Days, "
