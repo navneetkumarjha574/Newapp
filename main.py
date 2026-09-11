@@ -36,7 +36,7 @@ try:
         hours,remaining=divmod(total_seconds,3600)
         minutes,seconds=divmod(remaining,60)
 
-        current_slot=int(datetime.now(IST).timestamp())//300
+        current_slot=int(datetime.now(IST).timestamp())//600
 
         if current_slot!=last_sent_slot:
             msg=generate_birthday_message(days,hours,minutes,seconds)
