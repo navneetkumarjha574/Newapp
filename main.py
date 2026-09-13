@@ -14,7 +14,7 @@ IST=ZoneInfo("Asia/Kolkata")
 target_time=datetime(2026,9,16,0,0,0,tzinfo=IST)
 
 # Messages
-COUNTDOWN_TEMPLATES=["⏰ Only {days} Days, {hours} Hours, {minutes} Minutes, {seconds} Seconds Babu 💗"]
+COUNTDOWN_TEMPLATES=["{days} D {hours} H {minutes} M Babu 💗"]
 
 def generate_birthday_message(days,hours,minutes,seconds): return random.choice(COUNTDOWN_TEMPLATES).format(days=days,hours=hours,minutes=minutes,seconds=seconds)
 
