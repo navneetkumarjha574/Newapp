@@ -9,12 +9,12 @@ API_TOKEN_INSTANCE="4f99fd3a1a5d4e30b1f3cd0c83ddaab69aaa0ffba5c646f68f"
 greenAPI=API.GreenApi(ID_INSTANCE,API_TOKEN_INSTANCE)
 
 # Target
-PHONE_NUMBER="918340189561@c.us"
+PHONE_NUMBER="918603818597@c.us"
 IST=ZoneInfo("Asia/Kolkata")
 target_time=datetime(2026,9,16,0,0,0,tzinfo=IST)
 
 # Messages
-COUNTDOWN_TEMPLATES=["Only {hours}h {minutes}m left, babu 💗"]
+COUNTDOWN_TEMPLATES=["Beta Pintu"]
 
 def generate_birthday_message(days,hours,minutes,seconds): return random.choice(COUNTDOWN_TEMPLATES).format(days=days,hours=hours,minutes=minutes,seconds=seconds)
 
