@@ -5,9 +5,8 @@ import time
 from whatsapp_api_client_python import API
 
 # Green API
-ID_INSTANCE = "YOUR_INSTANCE_ID"
-API_TOKEN_INSTANCE = "YOUR_API_TOKEN"
-
+ID_INSTANCE="710522729580" 
+API_TOKEN_INSTANCE="4f99fd3a1a5d4e30b1f3cd0c83ddaab69aaa0ffba5c646f68f" 
 greenAPI = API.GreenApi(ID_INSTANCE, API_TOKEN_INSTANCE)
 
 # Target
