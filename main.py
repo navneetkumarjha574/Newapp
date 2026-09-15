@@ -17,7 +17,7 @@ target_time = datetime(2026, 9, 16, 0, 0, 0, tzinfo=IST)
 
 # Countdown Message
 COUNTDOWN_TEMPLATES = [
-    "Only {hours} Hours, {minutes} M Left Babu 💗"
+    "Only {minutes} M Left Babu 💗"
 ]
 
 def generate_birthday_message(hours, minutes):
